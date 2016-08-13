@@ -1,0 +1,92 @@
+//--------------------------------------------//
+// ALUNOS: TAGLINE TREICHEL e BRUNO FILLMANN
+//--------------------------------------------//
+
+#include "hash.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+
+//HASH_NODE = Table(HASH_SIZE);
+
+HASH_NODE* Table[HASH_SIZE];
+
+/*
+void hashInit(void)
+{
+	int i;
+
+	for (i=0; i<HASH_SIZE; i++)
+		Table[i]=Dummy;
+}
+*/
+
+int hashAddress(char *text)
+{ 
+	int i=0;
+	int address = 1;
+
+	for(i=0; i<strlen(text);i++)
+		address = (address = text[i]%HASH_SIZE+1);
+	return address - 1;
+}
+
+HASH_NODE *hashInsert(int type, char* text)
+{
+	int address;
+
+	HASH_NODE *testnode;
+	HASH_NODE *newnode= malloc(sizeof(HASH_NODE));
+	address = hashAddress(text);
+	
+	newnode->type = type;
+	newnode->text = (char*) calloc(strlen(text)+1,sizeof(char));
+	strcpy(newnode->text,text);
+	newnode->next = NULL;
+
+	if (Table[address] != NULL)
+	{
+		testnode = Table[address];
+		
+		if (testnode -> next ==NULL)
+			testnode->next = newnode;
+		else
+		{
+			while (testnode->next != NULL)
+				testnode = testnode->next;
+			testnode->next = newnode;
+		}	
+	}
+	Table[address] = newnode;
+
+	return newnode;
+}
+
+HASH_NODE *HashFind (char *text)
+{
+	int address = hashAddress(text);
+	HASH_NODE *node;
+
+	for (node=Table[address]; node; node=node->next)
+		if (strcmp(node->text, text))
+			return node;
+
+	return 0;
+}
+
+void hashPrint(void)
+{
+	HASH_NODE *node;
+	int i=0;
+
+	printf("\n ############ HASH TABLE ##########\n");
+
+	for(i=0;i<HASH_SIZE;i++)
+		for(node = Table[i]; node; node=node->next)
+			printf("Table[%d] has %s \n",i,node->text);
+
+	printf("\n ##################################\n");
+
+}
+
