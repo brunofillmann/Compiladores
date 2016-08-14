@@ -18,11 +18,29 @@ int isRunning(void);
 %}
 
 	
-%x COMMENT
-
+%x IN_COMMENT
 
 %%
-"END" 			{running = 0;}
+<<EOF>>				{ printf("EOF\n\n");	running = 0;	return 0;}		
+[\t ]				{ ; }
+"//".*\n 			{ linecounter++;	printf("Comment: %d\n\n", linecounter);}
+\n					{ linecounter++;	printf("Line: %d\n\n", linecounter);}
+
+
+<INITIAL>{
+     "/*"              BEGIN(IN_COMMENT);
+     }
+<IN_COMMENT>{
+     "*/"      BEGIN(INITIAL);
+     [^*\n]+   
+     "*"       
+     \n        linecounter++; printf("Line: %d\n\n", linecounter);
+     }
+
+
+
+
+
 
 "int"				{ printf("INT\n\n"); 	return KW_INT; 		}
 "float"				{ printf("FLOAT\n\n");  return KW_FLOAT; 	}
@@ -43,10 +61,8 @@ int isRunning(void);
 "&&"				{ printf("&&\n\n"); 	return OPERATOR_AND; 	}
 "||"				{ printf("||\n\n"); 	return OPERATOR_OR; 	}
 
-[!-/] { printf("Special Character '%c'\n\n", yytext[0]); return yytext[0]; }
-[:-@] { printf("Special Character '%c'\n\n", yytext[0]); return yytext[0]; }
-[\[-`] { printf("Special Character '%c'\n\n", yytext[0]); return yytext[0]; }
-[{-~] { printf("Special Character '%c'\n\n", yytext[0]); return yytext[0]; }
+[-,;:(){}\[\]+*/<>!&$=] { printf("Special Character '%c'\n\n", yytext[0]); return yytext[0]; }
+
 
 
 "TRUE"						{ printf("TRUE\n\n"); hashInsert(LIT_TRUE, yytext); return LIT_TRUE;}
@@ -55,6 +71,8 @@ int isRunning(void);
 [0-9]+						{ printf("LIT INT\n\n"); hashInsert(LIT_INTEGER, yytext); return LIT_INTEGER; 	}
 \'([^\\\"]|\\.)\'			{ printf("CHAR\n\n"); hashInsert(LIT_CHAR, yytext); return LIT_CHAR; 		}
 \"([^\\\"]|\\.)*\"			{ printf("STRING\n\n"); hashInsert(LIT_STRING, yytext); return LIT_STRING; 	}
+
+.        { return TOKEN_ERROR;}
 
 
 		
